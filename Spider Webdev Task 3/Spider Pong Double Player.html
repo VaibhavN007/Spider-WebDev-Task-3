@@ -1,0 +1,325 @@
+<html>
+
+<head>
+<title>Spider Pong</title>
+<style>
+	canvas{
+		display:block;
+		position:absolute;
+		top:80;
+		left:340;
+		border:1px solid black;
+		background-color:black;
+	}
+	p,button{
+		position:absolute;
+		font-family: "Georgia", Times, serif;
+		font-style:italic;
+		font-size:30px;
+	}
+	#heading{
+		top:0;
+		left:560;
+	}
+	#score1{
+		top:470;
+		left:500;
+	}
+	#score2{
+		top:470;
+		left:730;
+	}
+	#reload{
+		top:550;
+		left:590;
+	}
+		
+</style>
+</head>
+
+<body>
+
+<script>
+window.onload = function(){
+
+var
+canvas = document.getElementById("canvas"),
+ctx = canvas.getContext("2d"),
+width = canvas.width,
+height = canvas.height,
+currentState,
+states = {Splash:0, Game:1, Score:2},
+currentPaddle = 1,
+score1 = 0;
+score2 = 0;
+
+paddle1 = {
+
+	x : 0,
+	y : 160,
+	height : 40,
+	width : 7,
+	
+	update : function(ctx,key){
+		if(key===38)
+			this.y-=5;
+		if(key===40)
+			this.y+=5;
+			
+		if(this.y<0)
+			this.y = 0;
+		
+		if((this.y+this.height)>height)
+			this.y = height - this.height;
+	},
+	
+	draw : function(ctx){
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0,0,this.width,height);
+		
+		ctx.fillStyle = "#ffffff";
+		ctx.fillRect(this.x,this.y,this.width,this.height);
+	}
+	
+};
+
+paddle2 = {
+	
+	x : 700-7,
+	y : 160,
+	height : 40,
+	width : 7,
+	
+	update : function(ctx,key){
+		if(key===38)
+			this.y-=5;
+		if(key===40)
+			this.y+=5;
+		
+		if(this.y<0)
+			this.y = 0;
+		
+		if((this.y+this.height)>height)
+			this.y = height - this.height;
+			
+	},
+	
+	draw : function(ctx){
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(width-this.width-2,0,this.width+2,height);
+		ctx.fillStyle = "#ffffff";
+		ctx.fillRect(this.x,this.y,this.width,this.height);
+	}
+	
+};
+
+ball = {
+	x: 170 + Math.random() * (700-2*171) ,
+	y: 50 + Math.random()*(400-2*50),
+	size:10,
+	speed:1,
+	direction_x:-1,    ///direction_x is -1 for left and 1 for right
+	direction_y:-1,    ///direction is -1 for up and 1 for down
+	
+	update : function(ctx){
+		
+		if(currentPaddle === 1){
+			
+			this.direction_x = -1;
+			
+			if(this.y===0){
+				this.direction_y = 1;
+			}
+			
+			if((this.y+this.size)===400){
+				this.direction_y = -1;
+			}
+			
+			if( this.y>0 && this.y<400 && this.direction_y===-1){
+				this.direction_y = -1;
+			}
+				
+			if( this.y>0 && this.y<400 && this.direction_y===1){
+				this.direction_y = 1;
+			}
+			
+			
+			if( this.x===7 ){
+				
+				if(this.y>=(paddle1.y-this.size) && this.y<=(paddle1.y+paddle1.height)){
+					
+					paddle1.y = (height-paddle1.height)*Math.random();
+					paddle1.draw(ctx);
+					score1++;
+					this.speed += 0.3 * this.speed;
+					currentPaddle = 2;
+					
+				}
+				else{
+					currentState = states.Score;
+					throw new Message("Stopping the Game");
+				}
+				
+			}
+		
+			
+		}
+		
+		if(currentPaddle === 2){
+			
+			this.direction_x = 1;
+			
+			if(this.y===0){
+				this.direction_y = 1;
+			}
+			
+			if((this.y+this.size)===400){
+				this.direction_y = -1;
+			}
+			
+			if( this.y>0 && this.y<400 && this.direction_y===-1){
+				this.direction_y = -1;
+			}
+				
+			if( this.y>0 && this.y<400 && this.direction_y===1){
+				this.direction_y = 1;
+			}
+			
+			
+			if( (this.x+this.size)===693 ){
+				
+				if(this.y>=(paddle2.y-this.size) && this.y<=(paddle2.y+paddle2.height)){
+					
+					paddle2.y = (height-paddle2.height)*Math.random();
+					paddle2.draw(ctx);
+					score2++;
+					this.speed += 0.3 * this.speed;
+					currentPaddle = 1;
+				
+				}
+				else{
+					currentState = states.Score;
+					throw new FatalError("Stopping the Game");
+				}
+				
+			}
+			
+		}
+		
+	this.x = this.x + (this.direction_x * this.speed);
+	this.y = this.y + (this.direction_y * this.speed);
+	
+	if(this.x<7)
+		this.x=7;
+		
+	if(this.x+this.size>693)
+		this.x=693-this.size;
+	
+	if(this.y+this.size>400)
+		this.y=400-this.size;
+	
+	if(this.y<0)
+		this.y=0;
+	
+	document.getElementById("score1").innerHTML = "Player 1 : "+score1;
+	document.getElementById("score2").innerHTML = "Player 2 : "+score2;
+		
+	},
+	
+	render : function(ctx){
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(7,0,700-14,400);
+		ctx.fillStyle = "#ffffff";
+		ctx.fillRect(this.x,this.y,this.size,this.size);
+		
+	}
+	
+};
+
+function run(){
+	var loop = function(){
+		ball.update(ctx);
+		ball.render(ctx);
+		window.requestAnimationFrame(loop,canvas);
+	};
+	window.requestAnimationFrame(loop,canvas);
+};
+
+
+function onpress(evt){
+
+	var key = evt.keyCode;
+	
+	//console.log(key);
+	
+	//Up = 38
+	//Down = 40
+	
+	if(key===13 && currentState===states.Splash){
+		currentState = states.Game;
+		if(Math.random()>.5)
+			currentPaddle=1; 
+		else
+			currentPaddle =2;
+		
+		run();
+	}
+	
+	if(currentState === states.Game){
+	
+		if(currentPaddle === 1){
+			
+			if(key===38 || key===40){
+				
+				paddle1.update(ctx,key);
+				paddle1.draw(ctx);
+	
+			}
+			
+		}
+		
+		if(currentPaddle === 2){
+			
+			if(key===38 || key===40){
+				
+				paddle2.update(ctx,key);
+				paddle2.draw(ctx);
+	
+			}
+			
+		}
+		
+	
+	}
+	
+	
+	
+}
+
+function main(){
+	
+	currentState = states.Splash;
+	document.addEventListener("keydown",onpress);
+	
+	if(currentState === states.Splash){
+		paddle1.draw(ctx);
+		paddle2.draw(ctx);
+		ball.render(ctx)
+	}
+	
+};
+
+main();
+
+}
+</script>
+
+<canvas id="canvas" width=700 height=400>
+</canvas>
+<br>
+<p id="heading">Press Enter to Start</p>
+<p id = "score1">Player 1 : 0</p>
+<p id = "score2">Player 2 : 0</p>
+<button id="reload" onclick="location.reload()">PLAY AGAIN</button>
+</body>
+</html>
